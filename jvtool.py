@@ -43,15 +43,15 @@ class k2401:
             jvwriter = csv.writer(csvfile, delimiter=',',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
             
-            v_temp=list(self.v)
+            v_temp=list(self.v_series)
             v_temp.insert(0,'V')
-            i_temp=list(self.i)
+            i_temp=list(self.i_series)
             i_temp.insert(0,'I')
             jvwriter.writerow(v_temp)
             jvwriter.writerow(i_temp)
 
 
-    def simple_jv(self, v_series, v_rang, i_rang, i_prot, delay):
+    def simple_jv(self, v_series, v_rang, i_rang, i_prot, delay=0.5):
         ''' Simple JV measurement of current as a range of voltage is sweeped through
         v_series: list/np_array; a series of voltage to set Keithley to
         v_rang: str; 
@@ -64,10 +64,10 @@ class k2401:
         self.v_series=v_series
         self.write(':SOUR:FUNC VOLT')               # Select voltage source
         self.write(':SOUR:VOLT:MODE FIXED')         # Fixed voltage source mode
-        self.write(':SOUR:VOLT:RANG .5')            # Specify voltage source range
-        self.write(':SENS:CURR:PROT 10E-1')         # Specify current compliance in Amp
+        self.write(':SOUR:VOLT:RANG '+v_rang)            # Specify voltage source range
+        self.write(':SENS:CURR:PROT '+i_prot)         # Specify current compliance in Amp
         self.write(':SENS:FUNC "CURR"')             # Select current measure function
-        self.write(':SENS:CURR:RANG 10E-1')         # Specify current measurement range
+        self.write(':SENS:CURR:RANG '+i_rang)         # Specify current measurement range
         self.write(':FORM:ELEM CURR')               # Return current reading only
         self.write(':OUTPut ON')                    # Turn on OUTPUT
         _ = self.read()                             # Clear the serial buffer
@@ -77,9 +77,19 @@ class k2401:
             self.write(':SOUR:VOLT:LEV '+str(v))    # Source given output voltage
             self.write(':READ?')                    # Trigger, acquire reading
             time.sleep(delay)                       # Delay before reading 
-            self.Iout.append(self.read())           # Read measurement and add to output series
+            self.i_series.append(float(self.read()))           # Read measurement and add to output series
             
         self.write(':OUTPUT OFF')
+
+    def plotIV(self):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        self.ax.set_title('I-V Curve')
+        self.ax.plot(self.v_series,self.i_series)
+        self.ax.axhline(y=0, color='k')
+        self.ax.axvline(x=0, color='k')
+        self.ax.set_xlabel('Voltage (V)')
+        self.ax.set_ylabel('Current Density (mA*cm^-2)')   
 
 
 
