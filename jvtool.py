@@ -84,15 +84,21 @@ class k2401:
 
 
 class analyzer:
-    def __init__(self, filename):
+    def __init__(self, filename, activearea):
+        '''
+
+        activearea: active area of the device in cm^2
+        '''
+        self.filename=filename
+        self.activearea=activearea
         temp=[]
-        with open(filename, newline='') as csvfile:
+        with open(self.filename, newline='') as csvfile:
             jvreader = csv.reader(csvfile, delimiter=',', quotechar='|')
             # print(spamreader)
             for row in jvreader:
                 temp.append(row)
         self.v_series=[float(i) for i in temp[0][1:]]
-        self.i_series=[float(i) for i in temp[1][1:]]
+        self.i_series=[float(i)*1000 for i in temp[1][1:]]
 
         # Calculate Isc and Voc !!! To be improved because not all solar cells are resistive heater !!!
         _,self.Isc = np.polyfit(self.v_series,self.i_series,1)  # To be improved because not all solar cells are resistive heater
@@ -111,8 +117,8 @@ class analyzer:
             print('A fill factor is not calculated.')
 
 
-        print('Isc', self.Isc)
-        print('Voc', self.Voc)
+        print('Jsc', self.Isc/self.activearea, "mA*cm^-2")
+        print('Voc', self.Voc, "V")
         print('Fill Factor', self.ff)
 
 
@@ -120,11 +126,11 @@ class analyzer:
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
         self.ax.set_title('J-V Curve')
-        self.ax.plot(self.v_series,self.i_series)
+        self.ax.plot(self.v_series,np.multiply(self.i_series,1/self.activearea))
         self.ax.axhline(y=0, color='k')
         self.ax.axvline(x=0, color='k')
         self.ax.set_xlabel('Voltage (V)')
-        self.ax.set_ylabel('Current (A)')   
+        self.ax.set_ylabel('Current Density (mA*cm^-2)')   
 
 
     
