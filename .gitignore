@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Not uploading the data
-.csv
+*.csv
