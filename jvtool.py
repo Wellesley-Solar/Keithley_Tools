@@ -1,6 +1,7 @@
 import serial, string, time, csv
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import optimize
 
 class k2401:
     """
@@ -107,24 +108,25 @@ class analyzer:
             # print(spamreader)
             for row in jvreader:
                 temp.append(row)
-        self.v_series=[float(i) for i in temp[0][1:]]
-        self.i_series=[float(i)*1000 for i in temp[1][1:]]
+        self.v_series=np.array([float(i) for i in temp[0][1:]])
+        self.i_series=np.array([float(i)*-1000 for i in temp[1][1:]]) # Import current series but flip the sign and use mAmp
 
-        # Calculate Isc and Voc !!! To be improved because not all solar cells are resistive heater !!!
-        _,self.Isc = np.polyfit(self.v_series,self.i_series,1)  # To be improved because not all solar cells are resistive heater
-        _,self.Voc = np.polyfit(self.i_series,self.v_series,1)  # To be improved because not all solar cells are resistive heater
+        # Calculate Isc and Voc
+        self.Isc = np.interp(0, self.v_series,self.i_series)
+        self.Voc = np.interp(0, np.flip(self.i_series), np.flip(self.v_series))
         self.IscVoc = self.Isc*self.Voc
+        
 
-        # Calculate Fill Factor !!! to be improved with numerically calculated max power instead
-        product=np.multiply(self.v_series,self.i_series)
-        outPower=[]
-        for i,p in enumerate(list(product)):
-            if p<0:
-                outPower.append(p)
-        try:
-            self.ff = abs(min(outPower))/abs(self.IscVoc)
-        except ValueError:
-            print('A fill factor is not calculated.')
+        # Simple Model Fitting
+        self.fitparam, self.fitparam_cov = optimize.curve_fit(self.simple_model, self.v_series, self.i_series, bounds=([0,1.0,0], [10^6, 2.0, 10^6])) 
+        [self.I0, self.n, self.Rsh] = self.fitparam     # I0: reverse saturation current
+                                                        # n: ideality factor
+                                                        # Rsh: shunt resistance
+
+        # Simple Model Fill Factor
+        self.v_maxpower=optimize.minimize(self.simple_model_power,self.Voc/2).x
+        self.i_maxpower=self.simple_model(self.v_maxpower,*self.fitparam)
+        self.ff = self.v_maxpower*self.i_maxpower/self.IscVoc
 
 
         print('Jsc', self.Isc/self.activearea, "mA*cm^-2")
@@ -142,6 +144,25 @@ class analyzer:
         self.ax.set_xlabel('Voltage (V)')
         self.ax.set_ylabel('Current Density (mA*cm^-2)')   
 
+
+    def plotJVfit(self):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        self.ax.set_title('J-V Curve')
+        self.ax.plot(self.v_series,np.multiply(self.i_series,1/self.activearea), 'b.',label='measurement',LineWidth=2)
+        self.ax.plot(self.v_series,np.multiply(self.simple_model(self.v_series,*self.fitparam),1/self.activearea), 'r-',label='fit', LineWidth=2)
+        self.ax.axhline(y=0, color='k')
+        self.ax.axvline(x=0, color='k')
+        self.ax.set_xlabel('Voltage (V)')
+        self.ax.set_ylabel('Current Density (mA*cm^-2)')   
+        self.ax.legend()
+
+
+    def simple_model(self, v, I0, n, Rsh):
+        return self.Isc-I0*(np.exp(v/(n*0.0259))-1)-v/Rsh
+
+    def simple_model_power(self, v):
+        return -(self.Isc-self.I0*(np.exp(v/(self.n*0.0259))-1)-v/self.Rsh)*v
 
     
 

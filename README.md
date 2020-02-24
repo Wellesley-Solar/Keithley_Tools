@@ -8,10 +8,10 @@ To use all these code most conveniently, you would want to have the following in
  - Anaconda
   - Python 3 
   - Jupyter Notebook (with Python 3; it is recommended to install both Python3 and Jupyter Notebook by installing Anaconda)
- - Python 3 Modules: numpy, matplotlib, pySerial
+ - Python 3 Modules: numpy, scipy, matplotlib, pySerial
 
 ### Windows
-Open `Anaconda Prompt` by searching for it in the search bar at the lower left. Navigate to the public Github folder through the following command.
+Open `Anaconda Prompt` by searching for it in the search bar at the lower left. On the lab laptop, navigate to the public Github folder through the following command.
 ```
 cd C:\Users\Public\Github
 ```
