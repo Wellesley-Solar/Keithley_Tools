@@ -8,7 +8,7 @@ class k2401:
     Class k2401 inspired by Professor Brad Minch's Python code
 
     More details can be found in Series 2400 SourceMeter User's Manual:
-    https://download.tek.com/manual/2400S-900-01_K-Sep2011_User.pdf0S-900-01_K-Sep2011_User.pdf&usg=AOvVaw3q6tLQ1qQb21E2OXp-eijR
+    https://download.tek.com/manual/2400S-900-01_K-Sep2011_User.pdf
     """
 
     def __init__(self, port, baudrate = 57600):
