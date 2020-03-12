@@ -91,6 +91,70 @@ class k2401:
         self.ax.axvline(x=0, color='k')
         self.ax.set_xlabel('Voltage (V)')
         self.ax.set_ylabel('Current Density (mA*cm^-2)')   
+        
+    def reset(self):
+        self.write('*RST')
+        
+    def set_intSpeed(self,speed='5'):
+        self.write(':SENSe:VOLT:NPLCycles '+speed)
+        
+    def sweepI_senseV(self, sample, Ilist=['10E-11','0','10E-11','0'],trigcoun='1500',Ilevel='10E-8',Irang='10E-15',Vprot='10E-1',Vrang='10E-2'):
+        self.write(':SOURCE:FUNCTION CURRENT')
+        self.write(':SOUR:CURR:RANG '+Irang)
+        self.write(':SOUR:CURR:LEV '+Ilevel)
+        self.write(':SENSE:VOLT:PROTECTION '+Vprot)
+        self.write(':SENSE:FUNC "VOLT"')
+        self.write(':SENSE:VOLT:RANG '+Vrang)
+        self.write(':FORM:ELEM volt')
+        
+        self.read()
+        tempseries=''
+        end=None
+
+        self.write(':SOUR:CURR:MODE LIST')
+        self.write(':SOUR:LIST:CURR 0')
+        self.write(':TRIG:COUN 50')
+        self.write(':SOUR:DEL .1')
+        self.write(':OUTP ON')
+        self.write(':READ?')
+        start=time.time()
+        self.write('*IDN?')
+
+        time.sleep(.5)
+        while True:
+            tempseries=tempseries+self.read()
+            if tempseries[-4:]=='/V/M':
+                end=time.time()
+                break
+
+        for I in Ilist:#['10E-11','0','10E-11','0']:
+
+            self.write(':SOUR:LIST:CURR '+I)
+            self.write(':TRIG:COUN '+trigcoun)
+            self.write(':READ?')
+            self.write('*IDN?')
+
+            time.sleep(.5)
+            while True:
+                tempseries=tempseries+self.read()
+                if tempseries[-4:]=='/V/M':
+                    end=time.time()
+                    break
+
+        self.write(':OUTP OFF')
+        print(len(tempseries.split(',')))
+        dura_string=str(end-start)[:str(end-start).find('.')+3]
+        ttt=time.time()
+        temptime=str(ttt)[:str(ttt).find('.')]
+        
+        with open(sample+'V'+dura_string+'@'+'I'+Ilist[0]+'@'+temptime+'.csv', 'w', newline='') as csvfile:
+            jvwriter = csv.writer(csvfile, delimiter=',',
+                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
+            v_temp=list(tempseries.split(','))
+            v_temp.insert(0,'V')
+            jvwriter.writerow(v_temp)
+            jvwriter.writerow(Ilist)
 
 
 
