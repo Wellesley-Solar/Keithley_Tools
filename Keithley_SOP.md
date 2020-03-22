@@ -1,5 +1,6 @@
 # SOP: Keithley Measurements
 
+### For the lastest SOP, please always check [here](https://github.com/Wellesley-Solar/Keithley_Tools/blob/master/Keithley_SOP.md).
 By setting Keithley 2401 in RS-232 Mode, we can control the instrument over serial communication from a laptop. Therefore, before you begin, make sure that the RS-232 cable is connected and that the following settings are configured correctly on the Keithley's setup menu if they haven't been already. 
 ```
 Communication Mode: RS-232
