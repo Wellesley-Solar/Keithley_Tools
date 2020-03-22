@@ -1,4 +1,5 @@
 # Keithley Tools
+This repo contains all of the code needed to use Keithley Tools in Dr. Belisle's Solar Lab @ Wellesley College.
 
 ## Setup
 
