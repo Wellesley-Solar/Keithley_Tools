@@ -1,4 +1,5 @@
 # Keithley Tools
+This repo contains programs to operate the Keithley 2401 source-measure unit through a serial connection.
 
 ## Setup
 
