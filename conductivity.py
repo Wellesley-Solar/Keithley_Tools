@@ -1,14 +1,14 @@
 #%% import packages for communicating with keithley over \COM
-from jvtool import*
+from jvtool import k2401
 import time
 import matplotlib
 import pandas
 # %% Enable communication with Keithley
- keith=k2401('\COM4') # the port Keithley is on
+keith=k2401('\COM4') # the port Keithley is on
 
 #%%
-sample_name = '\Old_MAPbI3_N2_DC_conductivity.csv'
-directory_name = 'G:\Shared drives\Wellesley Solar\Current Projects\Conductivity\Becky_Data'
+sample_name = r'Old_MAPbI3_N2_DC_conductivity.csv'
+directory_name = r'G:\Shared drives\Wellesley Solar\Current Projects\Conductivity\Becky_Data\'
 sample_time = 1 #desired time in minutes
 
 # initialize values for experiment
@@ -38,9 +38,9 @@ while abs(start-time.time())<sample_time_sec:
     keith.write(':READ?')
     #time.sleep(.01)
     raw = keith.read()
+    measure_time.append(time.time())
     current.append(float(set_current))
     voltage.append(raw)
-    measure_time.append(time.time())
     time.sleep(.5)
 
 end = time.time()
