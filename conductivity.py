@@ -7,24 +7,25 @@ import pandas
 keith=k2401('\COM4') # the port Keithley is on
 
 #%%
-sample_name = r'Old_MAPbI3_N2_DC_conductivity.csv'
-directory_name = r'G:\Shared drives\Wellesley Solar\Current Projects\Conductivity\Becky_Data\'
-sample_time = 1 #desired time in minutes
+sample_name = '\MAPbX3_1nA_DC_conductivity.csv'
+directory_name = 'G:\Shared drives\Wellesley Solar\Current Projects\Conductivity\Becky_Data'
+sample_time = 900 #desired time in minutes
 
 # initialize values for experiment
 current = []
 voltage = []
+volts = []
 measure_time = []
 
 # Set up source current units in Amps
-set_current = '10E-11'
+set_current = '10E-10'
 keith.write(':SOURCE:FUNCTION CURRENT')
 keith.write(':SOUR:CURR:MODE FIXED')
 keith.write(':SOUR:CURR:RANG 10E-30')
-keith.write(':SOUR:CURR:LEV ' +str(set_current))
+keith.write(':SOUR:CURR:LEV 0') #initil source zero volts
 
 # Set up measure Voltage
-keith.write(':SENSE:VOLT:PROTECTION 50E-2')
+keith.write(':SENSE:VOLT:PROTECTION 10E-1')
 keith.write(':SENSE:FUNC "VOLT"')
 keith.write(':SENSE:VOLT:RANG 10E-2')
 keith.write(':FORM:ELEM volt')
@@ -34,6 +35,22 @@ time.sleep(0.1) #give the keithley a moment to respons
 keith.write(':OUTPUT ON')
 start=time.time()
 sample_time_sec = sample_time*60 #convert to seconds for accounting with clock
+
+#get background data 
+for points in range(100):
+    keith.write(':READ?')
+    raw = keith.read()
+    current.append(0)
+    voltage.append(raw)
+    measure_time.append(time.time())
+    time.sleep(.1)
+
+keith.write(':OUTPUT OFF')
+
+#run measurement
+keith.write(':SOUR:CURR:LEV ' +str(set_current))
+keith.write(':OUTPUT ON')
+
 while abs(start-time.time())<sample_time_sec:
     keith.write(':READ?')
     #time.sleep(.01)
@@ -41,13 +58,24 @@ while abs(start-time.time())<sample_time_sec:
     measure_time.append(time.time())
     current.append(float(set_current))
     voltage.append(raw)
-    time.sleep(.5)
+    measure_time.append(time.time())
+    time.sleep(5)
 
 end = time.time()
 print('Measurement Complete', end)
 keith.write(":OUTPUT OFF")
 run_time = [element - start for element in measure_time] #get time in seconds
-volts = [float(element) for element in voltage] #convert data from strings to floats
+#convert voltage from string to flost
+element=0
+while element < len(voltage):
+    try: 
+        volts.append(float(voltage[element]))
+        element = element+1
+    except ValueError:
+        volts.append(0)
+        print(element)
+        element = element+1
+
 results = pandas.DataFrame(list(zip(run_time, current, volts)), columns=['Time [s]', 'Current [A]', 'Voltage [V]']) #make dataframe
 results.to_csv(directory_name+str(sample_name)) #savefile
 
