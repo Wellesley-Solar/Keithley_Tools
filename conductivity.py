@@ -1,5 +1,5 @@
 #%% import packages for communicating with keithley over \COM
-from jvtool import*
+from jvtool import k2401
 import time
 import matplotlib
 import pandas
@@ -56,6 +56,7 @@ while abs(start-time.time())<sample_time_sec:
     keith.write(':READ?')
     #time.sleep(.01)
     raw = keith.read()
+    measure_time.append(time.time())
     current.append(float(set_current))
     voltage.append(raw)
     measure_time.append(time.time())
