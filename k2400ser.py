@@ -1,4 +1,4 @@
-
+#%%
 import serial, string 
 
 class K2400ser:
